@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "chai": "^5.1.2",
+    "esprima": "^4.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "mocha": "^11.0.1"
+  },
+  "scripts": {
+    "test": "jest"
+  }
+}
