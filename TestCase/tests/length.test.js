@@ -1,26 +1,26 @@
-const { add, subtract } = require('../src/calculator');
+const { lengthOfString, toUpperCase } = require('../src/string/length');
 
 
-describe('add', () => {
+describe('lengthOfString', () => {
     it('should handle valid inputs', () => {
-        const result = add(88, 86);
+        const result = lengthOfString('pdvXh');
         expect(result).toBeDefined();
     });
 
     it('should handle invalid inputs', () => {
-        const result = add('invalid', 'invalid');
+        const result = lengthOfString('invalid');
         expect(result).toBeUndefined();
     });
 });
 
-describe('subtract', () => {
+describe('toUpperCase', () => {
     it('should handle valid inputs', () => {
-        const result = subtract(47, 53);
+        const result = toUpperCase('UrABN');
         expect(result).toBeDefined();
     });
 
     it('should handle invalid inputs', () => {
-        const result = subtract('invalid', 'invalid');
+        const result = toUpperCase('invalid');
         expect(result).toBeUndefined();
     });
 });

@@ -1,9 +1,9 @@
-const { add, subtract } = require('../src/calculator');
+const { add, subtract } = require('../src/utils/sample');
 
 
 describe('add', () => {
     it('should handle valid inputs', () => {
-        const result = add(88, 86);
+        const result = add(11, 7);
         expect(result).toBeDefined();
     });
 
@@ -15,7 +15,7 @@ describe('add', () => {
 
 describe('subtract', () => {
     it('should handle valid inputs', () => {
-        const result = subtract(47, 53);
+        const result = subtract(29, 11);
         expect(result).toBeDefined();
     });
 
