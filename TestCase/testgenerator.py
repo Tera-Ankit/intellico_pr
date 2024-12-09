@@ -1,5 +1,7 @@
 import os
 import esprima
+import esprima
+print("Esprima imported successfully!")
 import random
 from pathlib import Path
 
