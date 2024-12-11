@@ -1,135 +1,62 @@
 import os
-import esprima
-import random
-import string
-from pathlib import Path
 
+def generate_test_case(component_path, component_name, test_dir):
+    # Calculate the relative path from the component file to the 'tests' folder
+    component_dir = os.path.dirname(component_path)
+    relative_path = os.path.relpath(component_dir, test_dir)
 
-def extract_functions(js_code):
-    """
-    Extracts function names, parameters, and logic hints from JavaScript code.
-    """
-    try:
-        parsed = esprima.parseScript(js_code, tolerant=True)
-        functions = []
+    # Replace backslashes with forward slashes to ensure consistent path format
+    relative_path = relative_path.replace(os.sep, '/')
 
-        for node in parsed.body:
-            try:
-                # Handle function declarations
-                if node.type == "FunctionDeclaration":
-                    func_name = node.id.name if hasattr(node.id, "name") else "unknown"
-                    params = [param.name for param in node.params] if hasattr(node, "params") else []
+    # Create the test case content
+    test_content = f"""
+const {component_name} = require('{relative_path}/{component_name}'); // Adjust path as necessary
 
-                    # Analyze the function body for type hints
-                    logic_hints = []
-                    if hasattr(node.body, "body"):
-                        for statement in node.body.body:
-                            if statement.type == "IfStatement" and hasattr(statement, "range") and statement.range:
-                                tokens = list(esprima.tokenize(js_code[statement.range[0]:statement.range[1]]))
-                                if "typeof" in [t.value for t in tokens]:
-                                    logic_hints.append("type_check")
-                                if "isNaN" in [t.value for t in tokens]:
-                                    logic_hints.append("numeric_check")
-
-                    functions.append({"name": func_name, "params": params, "logic_hints": logic_hints})
-
-            except Exception as e:
-                print(f"Error processing node: {node}, {e}")
-                continue
-
-        return functions
-
-    except Exception as e:
-        print(f"Error parsing JavaScript: {e}")
-        return []
-
-
-def generate_test_values(params, logic_hints):
-    """
-    Generate test values based on parameter names and function logic hints.
-    """
-    test_values = []
-    for param in params:
-        if "numeric_check" in logic_hints or param.lower() in ['a', 'b', 'num', 'number']:
-            test_values.append(random.randint(1, 100))  # Random integers
-        elif "type_check" in logic_hints or param.lower() in ['str', 'string', 'text']:
-            test_values.append(''.join(random.choices(string.ascii_letters, k=5)))  # Random string
-        else:
-            test_values.append(None)  # Default case for unknown types
-    return test_values
-
-
-def generate_unit_test(func_name, params, logic_hints):
-    """
-    Generates a Jest-based unit test for a given function.
-    """
-    valid_values = generate_test_values(params, logic_hints)
-    invalid_values = ['invalid'] * len(params)
-
-    test_case = f"""
-describe('{func_name}', () => {{
-    it('should handle valid inputs', () => {{
-        const result = {func_name}({', '.join(map(repr, valid_values))});
-        expect(result).toBeDefined();
-    }});
-
-    it('should handle invalid inputs', () => {{
-        const result = {func_name}({', '.join(map(repr, invalid_values))});
-        expect(result).toBeUndefined();
-    }});
+describe('{component_name}', () => {{
+  it('renders correctly', () => {{
+    expect({component_name}).toBeDefined();
+  }});
 }});
-"""
-    return test_case
-
-
-def generate_test_file(js_file_path, output_dir="tests"):
     """
-    Generate unit tests for a JavaScript file and write them to the output directory.
-    """
-    try:
-        with open(js_file_path, "r") as js_file:
-            js_code = js_file.read()
-    except FileNotFoundError:
-        print(f"JavaScript file not found: {js_file_path}")
-        return
 
-    functions = extract_functions(js_code)
-    if not functions:
-        print(f"No functions found in the JavaScript file: {js_file_path}")
-        return
+    # Ensure the test directory exists, then write the test case
+    if not os.path.exists(test_dir):
+        os.makedirs(test_dir)
 
-    os.makedirs(output_dir, exist_ok=True)
-    file_name = Path(js_file_path).stem
-    relative_path_to_src = os.path.relpath(Path(js_file_path).parent, start=output_dir).replace("\\", "/")
+    test_file_path = os.path.join(test_dir, f"{component_name}.test.js")
+    with open(test_file_path, 'w') as f:
+        f.write(test_content)
 
-    test_file_name = f"{file_name}.test.js"
-    test_file_path = os.path.join(output_dir, test_file_name)
+def generate_tests_for_folder(folder_path, test_dir):
+    # Walk through the folder and find all .js and .jsx files
+    for root, dirs, files in os.walk(folder_path):
+        for file in files:
+            if file.endswith('.js') or file.endswith('.jsx'):
+                # Get the full path of the component
+                component_path = os.path.join(root, file)
 
-    try:
-        with open(test_file_path, "w") as test_file:
-            test_file.write(f"const {{ {', '.join([func['name'] for func in functions])} }} = require('{relative_path_to_src}/{file_name}');\n\n")
-            for func in functions:
-                test_case = generate_unit_test(func["name"], func["params"], func["logic_hints"])
-                test_file.write(test_case)
-        print(f"Test cases generated at: {test_file_path}")
-    except Exception as e:
-        print(f"Error writing test cases: {e}")
+                # Get the component name (file name without extension)
+                component_name = os.path.splitext(file)[0]
 
+                # Generate the test case
+                generate_test_case(component_path, component_name, test_dir)
 
-def process_folder(folder_path, output_dir="tests"):
-    """
-    Generate test cases for all JavaScript files in a folder.
-    """
-    js_files = list(Path(folder_path).rglob("*.js"))
-    if not js_files:
-        print(f"No JavaScript files found in the folder: {folder_path}")
-        return
+def process_folder(folder_path, output_folder):
+    # Create the 'tests' folder
+    test_dir = os.path.join(folder_path, output_folder)
+    
+    generate_tests_for_folder(folder_path, test_dir)
+    print(f"Test cases have been generated in: {test_dir}")
 
-    for js_file in js_files:
-        generate_test_file(js_file, output_dir)
-
+def generate_test_file(file_path, output_folder):
+    component_name = os.path.splitext(os.path.basename(file_path))[0]
+    test_dir = os.path.join(os.path.dirname(file_path), output_folder)
+    
+    generate_test_case(file_path, component_name, test_dir)
+    print(f"Test case has been generated for: {file_path}")
 
 if __name__ == "__main__":
+    # Get the path to the JavaScript file or folder and output folder from the user
     path = input("Enter the path to the JavaScript file or folder: ").strip()
     output_folder = input("Enter the output folder for test files (default: tests): ").strip() or "tests"
 
