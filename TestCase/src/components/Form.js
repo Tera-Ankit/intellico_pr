@@ -1,5 +1,6 @@
 // Form.jsx
 import React, { useState } from 'react';
+import './Form.css';
 import { calculateSum } from './Utils';
 
 export function Form() {
