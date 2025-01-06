@@ -63,6 +63,7 @@ def generate_unit_test(func_name, params, logic_hints):
     """
     Generates a Jest-based unit test for a given function.
     """
+    
     valid_values = generate_test_values(params, logic_hints)
     invalid_values = ['invalid'] * len(params)
 
@@ -128,14 +129,17 @@ def process_folder(folder_path, output_dir="tests"):
     for js_file in js_files:
         generate_test_file(js_file, output_dir)
 
-
-if __name__ == "__main__":
-    path = input("Enter the path to the JavaScript file or folder: ").strip()
-    output_folder = input("Enter the output folder for test files (default: tests): ").strip() or "tests"
-
+def run_middleware(path, output_folder):
     if os.path.isdir(path):
         process_folder(path, output_folder)
     elif os.path.isfile(path) and path.endswith(".js"):
         generate_test_file(path, output_folder)
     else:
         print("Invalid path. Please provide a valid JavaScript file or folder.")
+
+
+if __name__ == "__main__":
+    path = input("Enter the path to the JavaScript file or folder: ").strip()
+    output_folder = input("Enter the output folder for test files (default: tests): ").strip() or "tests"
+
+    run_middleware(path, output_folder)

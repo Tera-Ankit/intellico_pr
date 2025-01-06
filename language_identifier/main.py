@@ -25,8 +25,16 @@ def javascript_middleware(folder_path, output_folder):
                 # Generate tests for the JavaScript file
                 generate_test_file(js_file_path, output_folder)
 
-def java_middleware(folder_path, output_folder):
-    print(f"Processing folder '{folder_path}' with Java middleware...")
+def jsx_middleware(folder_path, output_folder):
+    print(f"Processing folder '{folder_path}' with JSX middleware...")
+    # Identify JavaScript files in the folder
+    for root, _, files in os.walk(folder_path):
+        for file in files:
+            if file.endswith(".jsx"):
+                js_file_path = os.path.join(root, file)
+                print(f"Found JSX file: {js_file_path}")
+                # Generate tests for the JavaScript file
+                generate_test_file(js_file_path, output_folder)
 
 def unknown_middleware(folder_path, output_folder):
     print(f"Processing folder '{folder_path}' with Unknown middleware...")
@@ -36,7 +44,7 @@ def call_middleware(language, folder_path, output_folder):
     middleware_map = {
         'Python': python_middleware,
         'JavaScript': javascript_middleware,
-        'Java': java_middleware,
+        'JSX': jsx_middleware,
         'Unknown': unknown_middleware,
     }
     middleware = middleware_map.get(language, unknown_middleware)
@@ -64,8 +72,8 @@ def analyze_folder(folder_path, output_folder):
                 file_language_counts['Python'] += 1
             elif file_extension == '.js':
                 file_language_counts['JavaScript'] += 1
-            elif file_extension == '.java':
-                file_language_counts['Java'] += 1
+            elif file_extension == '.jsx':
+                file_language_counts['JSX'] += 1
 
         print(f"Relevant file counts in {root}: {dict(file_language_counts)}")
 
